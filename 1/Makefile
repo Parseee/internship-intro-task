@@ -1,6 +1,6 @@
 .PHONY: all clean build clean_bin clean_obj rebuild
 
-PROJECT_NAME = task2
+PROJECT_NAME = task1
 
 SRC_DIR = ./src
 BUILD_DIR = ./build
@@ -24,10 +24,10 @@ CFLAGS =-Wall -Wextra -Waggressive-loop-optimizations -g -std=c11 \
 		-fno-omit-frame-pointer -Wlarger-than=81920 -Wstack-usage=81920 \
 		-Werror=vla -fsanitize=leak
 
-SOURCES = main.c
+SOURCES = main.c vector/vector.h
 SOURCES_REL_PATH = $(patsubst %.c,$(SRC_DIR)/%.c,$(SOURCES))
 
-DIRS =
+DIRS = vector
 BUILD_DIRS = $(DIRS:%=$(BUILD_DIR)/%)
 
 OBJECTS = $(patsubst %.c,%.o,$(SOURCES))
