@@ -1,8 +1,12 @@
+#include <assert.h>
+#include <pthread.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "sort.h"
 
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
+// needed for pthread
 
 bool is_sorted(void* array, size_t array_size, size_t size,
     bool (*compare)(const void*, const void*))
@@ -18,148 +22,116 @@ bool is_sorted(void* array, size_t array_size, size_t size,
     return true;
 }
 
-static void vectorized_memory_swap(void** ptr1, void** ptr2, void* ptr_tmp, size_t size)
+typedef struct MSData {
+    void* array;
+    const size_t l;
+    const size_t r;
+    const size_t width;
+    bool (*compare)(const void* l, const void* r);
+} MSData;
+
+void merge(void* array, const size_t l, const size_t r, const size_t m, const size_t width, bool (*compare)(const void* l, const void* r))
 {
-    assert(ptr1 && "");
-    assert(ptr2 && "");
-    assert(*ptr1 && "");
-    assert(*ptr2 && "");
-    assert(ptr_tmp && "");
+    assert(array);
 
-    memcpy(ptr_tmp, *ptr1, size);
-    memcpy(*ptr1, *ptr2, size);
-    memcpy(*ptr2, ptr_tmp, size);
+    size_t left_seg_len = m - l; // 0 ... n -> [0 ... m) [m ... r)
+    size_t right_seg_len = r - m;
+    // 1 2 3 4 5
+    //   ^
 
-    *ptr1 = (char*)(*ptr1) + size;
-    *ptr2 = (char*)(*ptr2) + size;
-}
+    void* left_seg = calloc(left_seg_len, width);
+    void* right_seg = calloc(right_seg_len, width);
 
-void swap(void* ptr1, void* ptr2, size_t size)
-{
-    assert(ptr1 && "");
-    assert(ptr2 && "");
-
-    while (size >= sizeof(uint64_t)) {
-        uint64_t ptr_tmp;
-        vectorized_memory_swap(&ptr1, &ptr2, (void*)&ptr_tmp, sizeof(uint64_t));
-        size -= sizeof(uint64_t);
-    }
-    if (size & sizeof(uint64_t)) {
-        uint32_t ptr_tmp = 0;
-        vectorized_memory_swap(&ptr1, &ptr2, (void*)&ptr_tmp, 4);
-        size -= sizeof(uint32_t);
-    }
-    if (size & sizeof(uint16_t)) {
-        uint16_t ptr_tmp = 0;
-        vectorized_memory_swap(&ptr1, &ptr2, (void*)&ptr_tmp, 2);
-        size -= sizeof(uint16_t);
-    }
-    if (size & sizeof(uint8_t)) {
-        uint8_t ptr_tmp = 0;
-        vectorized_memory_swap(&ptr1, &ptr2, (void*)&ptr_tmp, 1);
-        size -= sizeof(uint8_t);
+    for (size_t i = 0; i < left_seg_len; ++i) {
+        memcpy((left_seg + i * width), (array + (l + i) * width), width);
+        // fprintf(stderr, "%d ", *(int*)(left_seg + i * width));
     }
 
-    return;
-}
+    // fprintf(stderr, "\n");
 
-void bubble_sort(void *const array, const ssize_t array_size, const ssize_t size, bool (*compare)(const void *, const void *))
-{
-    for (ssize_t i = 0; i < array_size; ++i) {
-        for (ssize_t j = i + 1; j < array_size; ++j) {
-            // fprintf(stderr, "%s, %s\n", *((char**)(array) + i), *((char**)(array) + j));
-            if (!compare(array + (i * size), array + (j * size))) {
-                swap(array + (i * size), array + (j * size), size);
-            }
-        }
+    for (size_t i = 0; i < right_seg_len; ++i) {
+        memcpy((right_seg + i * width), (array + (m + i) * width), width);
+        // fprintf(stderr, "%d ", *(int*)(right_seg + i * width));
     }
 
-    return;
-}
+    // fprintf(stderr, "\n");
 
-static size_t partition(void* array, ssize_t l, ssize_t r, size_t array_size, size_t size, bool (*compare)(const void*, const void*))
-{
-    void* pivot = array + l * size;
+    size_t i = 0;
+    size_t j = 0;
+    size_t pos = l;
 
-    ssize_t i = l + 1;
-    ssize_t j = r;
-    while (true) {
-        while (i <= j && compare(array + i * size, pivot)) {
+    while (i < left_seg_len && j < right_seg_len) {
+        if (compare((left_seg + i * width), (right_seg + j * width))) {
+            memcpy((array + pos * width), (left_seg + i * width), width);
             ++i;
-        }
-        while (i <= j && compare(pivot, array + j * size)) {
-            --j;
-        }
-        if (i > j) {
-            break;
         } else {
-            swap(array + i * size, array + j * size, size);
+            memcpy((array + pos * width), (right_seg + j * width), width);
+            ++j;
         }
+        // fprintf(stderr, "%d ", *(int*)(array + pos * width));
+        ++pos;
     }
 
-    swap(pivot, array + j * size, size);
-    return j;
+    while (i < left_seg_len) {
+        memcpy((array + pos * width), (left_seg + i * width), width);
+        // fprintf(stderr, "%d ", *(int*)(array + pos * width));
+        ++pos;
+        ++i;
+    }
+
+    while (j < right_seg_len) {
+        memcpy((array + pos * width), (right_seg + j * width), width);
+        // fprintf(stderr, "%d ", *(int*)(array + pos * width));
+        ++pos;
+        ++j;
+    }
+    // fprintf(stderr, "\n");
+
+    free(left_seg);
+    free(right_seg);
+    return;
 }
 
-static void _q_sort(void* array, ssize_t l, ssize_t r, size_t array_size, size_t size, bool (*compare)(const void*, const void*))
+void* _merge_sort(void* msdata)
 {
-    if (array == NULL || array_size == 1) {
-        return;
+    assert(msdata);
+    MSData* data = (MSData*)msdata;
+    void* array = data->array;
+    const size_t l = data->l;
+    const size_t r = data->r;
+    const size_t width = data->width;
+    bool (*compare)(const void* l, const void* r) = data->compare;
+
+    if (r - l > 1) {
+        size_t m = (l + r) / 2;
+
+        MSData ldata = { array, l, m, width, compare };
+        MSData rdata = { array, m, r, width, compare };
+
+        pthread_t lthread, rthread;
+        // pthread_create(&lthread, NULL, _merge_sort, &ldata); // no need to return anything
+        // pthread_create(&rthread, NULL, _merge_sort, &rdata);
+        _merge_sort((void*)&ldata);
+        _merge_sort((void*)&rdata);
+
+        // pthread_join(lthread, NULL);
+        // pthread_join(rthread, NULL);
+        merge(array, l, r, m, width, compare);
     }
 
-    if (l < r) {
-        ssize_t pivot = partition(array, l, r, array_size, size, compare);
-        _q_sort(array, l, pivot - 1, array_size, size, compare);
-        _q_sort(array, pivot + 1, r, array_size, size, compare);
-    }
+    return NULL;
 }
 
-void q_sort(void* const array, const ssize_t array_size, const ssize_t size, bool (*compare)(const void* l, const void* r))
+// half segments -> [l, r)
+void merge_sort(void* array, const ssize_t array_size, const ssize_t size, bool (*compare)(const void* l, const void* r))
 {
-    _q_sort(array, 0, array_size - 1, array_size, size, compare);
-}
-
-void shaker_sort(void* const array, const ssize_t array_size, const ssize_t size, bool (*compare)(const void* l, const void* r))
-{
-    if (!array || array_size == 1) {
-        return;
-    }
-
-    bool backwards = false;
-    for (ssize_t i = 0; i < array_size; ++i) {
-        if (backwards) {
-            for (ssize_t j = array_size - 1; j > i; --j) {
-                if (!compare(array + i * size, array + j * size)) {
-                    swap(array + i * size, array + j * size, size);
-                }
-            }
-        } else {
-            for (ssize_t j = i + 1; j < array_size; ++j) {
-                if (!compare(array + i * size, array + j * size)) {
-                    swap(array + i * size, array + j * size, size);
-                }
-            }
-        }
-    }
-}
-
-void shell_sort(void *const array, const ssize_t array_size, const ssize_t size, bool (*compare)(const void *, const void *))
-{
-    if (!array || array_size == 1) {
-        return;
-    }
-
-    for (ssize_t gap = array_size / 2; gap > 0; gap >>= 1) {
-        for (ssize_t i = gap; i < array_size; ++i) {
-            void* tmp = array + i * size;
-
-            int j;            
-            for (j = i; j >= gap && compare(array + (j - gap) * size, tmp); j -= gap) {
-                void* t = ((char**)array + (j - gap) * size);
-                ((char**)array)[j * size] = t;
-            }
-
-            ((char**)array)[j * size] = tmp;
-        }
-    }
+    MSData data = {
+        .array = array,
+        .l = 0,
+        .r = array_size,
+        .width = size,
+        .compare = compare
+    };
+    _merge_sort((void*)&data);
+    return;
 }

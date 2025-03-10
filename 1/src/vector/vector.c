@@ -1,6 +1,8 @@
-#include "vector.h"
-
 #include <assert.h>
+#include <stdlib.h>
+#include <time.h>
+
+#include "vector.h"
 
 #define TRY(act, label) \
     if (act)            \
@@ -12,7 +14,12 @@ VECTOR_ERROR Vector_ctor(Vector* vector, size_t capacity)
 
     vector->capacity = capacity;
     vector->size = capacity;
-    TRY((vector = calloc(capacity, sizeof(*vector))), cleanup);
+    TRY((vector->data = calloc(capacity, sizeof(*vector))) == NULL, cleanup);
+
+    srand(time(NULL)); // move it outside. quite slow
+    for (size_t i = 0; i < vector->size; ++i) {
+        vector->data[i] = rand() % 100;
+    }
 
     return VECTOR_OK;
 
@@ -34,7 +41,7 @@ VECTOR_ERROR Vector_dtor(Vector* vector)
 #define CASE_ENUM_TO_STRING_(error) \
     case error:                     \
         return #error
-const char* VECTOR_strerror(const VECTOR_ERROR error)
+const char* Vector_strerror(const VECTOR_ERROR error)
 {
     switch (error) {
         CASE_ENUM_TO_STRING_(VECTOR_OK);

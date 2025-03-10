@@ -24,10 +24,10 @@ CFLAGS =-Wall -Wextra -Waggressive-loop-optimizations -g -std=c11 \
 		-fno-omit-frame-pointer -Wlarger-than=81920 -Wstack-usage=81920 \
 		-Werror=vla -fsanitize=leak
 
-SOURCES = main.c vector/vector.h
+SOURCES = main.c vector/vector.c sort/sort.c
 SOURCES_REL_PATH = $(patsubst %.c,$(SRC_DIR)/%.c,$(SOURCES))
 
-DIRS = vector
+DIRS = vector sort
 BUILD_DIRS = $(DIRS:%=$(BUILD_DIR)/%)
 
 OBJECTS = $(patsubst %.c,%.o,$(SOURCES))

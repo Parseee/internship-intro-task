@@ -10,8 +10,8 @@
             fprintf(stderr, "Error calling " #call_func ". error is %s\n", \
                 Vector_strerror(error_handler));                           \
             __VA_ARGS__;                                                   \
-            /* return error_handler; */                                    \
-            exit(EXIT_FAILURE);                                            \
+            return error_handler;                                          \
+            /*exit(EXIT_FAILURE);*/                                        \
         }                                                                  \
     } while (0)
 
