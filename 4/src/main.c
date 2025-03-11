@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "error/error.h"
 
 #define ELBRUS 5642
 #define MAX_OPT_LEN 4 // 1c+, 2c+, 2c3, 4c, 8c, 16c
@@ -11,8 +12,6 @@
 const char* good_elbrus_opts[];
 
 static void print_usage(const char* prog_name);
-static int errx(int status, const char* fmt, ...);
-static int warnx(const char* fmt, ...);
 static int validate_elbrus(const char* optarg);
 //письки попки какашки))
 
