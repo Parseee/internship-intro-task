@@ -1,6 +1,6 @@
 .PHONY: all clean build clean_bin clean_obj rebuild
 
-PROJECT_NAME = task2
+PROJECT_NAME = task4
 
 SRC_DIR = ./src
 BUILD_DIR = ./build
@@ -24,10 +24,10 @@ CFLAGS =-Wall -Wextra -Waggressive-loop-optimizations -g -std=c11 \
 		-fno-omit-frame-pointer -Wlarger-than=81920 -Wstack-usage=81920 \
 		-Werror=vla -fsanitize=leak
 
-SOURCES = main.c
+SOURCES = main.c error/error.c
 SOURCES_REL_PATH = $(patsubst %.c,$(SRC_DIR)/%.c,$(SOURCES))
 
-DIRS =
+DIRS = error
 BUILD_DIRS = $(DIRS:%=$(BUILD_DIR)/%)
 
 OBJECTS = $(patsubst %.c,%.o,$(SOURCES))
@@ -35,7 +35,7 @@ OBJECTS_REL_PATH = $(patsubst %.o,$(BUILD_DIR)/%.o,$(OBJECTS))
 DEPS_REL_PATH = $(OBJECTS_REL_PATH:%.o=%.d)
 
 INCLUDES = 
-LIBS = -lpthread
+LIBS =
 
 all: build run
 
@@ -63,8 +63,5 @@ clean_bin:
 
 clean_obj:
 	rm -rf ./build
-
-clean_lib:
-	@$(MAKE)  LIST=$(LIST) DYNAMIC=$(DYNAMIC) clean -C ./libs/mystack
 
 rebuild: clean build
