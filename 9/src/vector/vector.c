@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -18,7 +19,8 @@ VECTOR_ERROR Vector_ctor(Vector* vector, size_t capacity)
 
     srand(time(NULL));
     for (size_t i = 0; i < vector->size; ++i) {
-        vector->data[i] = rand() % 100;
+        // vector->data[i] = rand() % 100 * (rand() % 100 > 50 ? -1 : 1);
+        scanf("%d", &vector->data[i]);
     }
 
     return VECTOR_OK;
@@ -34,6 +36,18 @@ VECTOR_ERROR Vector_dtor(Vector* vector)
 
     free(vector->data);
     vector->data = NULL;
+
+    return VECTOR_OK;
+}
+
+VECTOR_ERROR Vector_print(const Vector* vector)
+{
+    assert(vector);
+
+    for (size_t i = 0; i < vector->size; ++i) {
+        printf("%d ", vector->data[i]);
+    }
+    printf("\n");
 
     return VECTOR_OK;
 }

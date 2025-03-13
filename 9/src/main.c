@@ -1,120 +1,80 @@
-#include <ctype.h>
-#include <getopt.h>
+#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include "error/error.h"
+// #include "error/error.h"
+#include "vector/vector.h"
 
-#define ELBRUS 5642
-#define MAX_OPT_LEN 4 // 1c+, 2c+, 2c3, 4c, 8c, 16c
+#define MAX(a, b) a < b ? b : a
 
-const char* good_elbrus_opts[];
+typedef struct Sub_arr {
+    size_t left;
+    size_t right;
+    int64_t sum;
+} Sub_arr;
 
-static void print_usage(const char* prog_name);
-static int validate_elbrus(const char* optarg);
+static Sub_arr process(Vector* vector);
+static size_t read_size(void);
 
-int main(int argc, char** argv)
+int main(void)
 {
-    int m_flag = 0;
-    int c_flag = 0;
-    int s_flag = 0;
-    int t_flag = 0;
-    int elbrus_flag = 0;
-    char elbrus_agr[MAX_OPT_LEN];
+    size_t vector_size = read_size();
 
-    struct option long_options[] = {
-        { "m-opt", no_argument, NULL, 'm' },
-        { "c-opt", no_argument, NULL, 'c' },
-        { "s-opt", no_argument, NULL, 's' },
-        { "t-opt", no_argument, NULL, 't' },
-        { "elbrus", required_argument, &elbrus_flag, ELBRUS },
-        { NULL, 0, NULL, 0 } // End of options
-    };
+    Vector vector;
+    VECTOR_ERROR_HANDLE(Vector_ctor(&vector, vector_size));
 
-    int opt = 1;
-    while ((opt = getopt_long(argc, argv, "mcst", long_options, NULL)) != -1) {
-        switch (opt) {
-        case ('m'):
-            m_flag = 1;
-            break;
+    VECTOR_ERROR_HANDLE(Vector_print(&vector));
 
-        case ('c'):
-            c_flag = 1;
-            break;
+    Sub_arr res = process(&vector);
 
-        case ('s'):
-            s_flag = 1;
-            break;
+    printf("left: %lu, right: %lu, max sum: %lli", res.left, res.right, res.sum);
 
-        case ('t'):
-            t_flag = 1;
-            break;
-
-        case (0):
-            if (elbrus_flag == ELBRUS) {
-                if (!validate_elbrus(optarg)) {
-                    errx(EXIT_FAILURE, "Bad option \"%s\" for elbrus", optarg);
-                }
-                strncpy(elbrus_agr, optarg, MAX_OPT_LEN);
-            }
-            break;
-
-        case ('?'):
-            if (isprint(optopt)) {
-                warnx("unknown option -%c\n", optopt);
-            } else {
-                warnx("unknown option character -%x\n", (unsigned)optopt);
-            }
-            break;
-
-        default:
-            print_usage(argv[0]);
-            exit(0);
-        }
-    }
-
-    printf("Correct options: ");
-    m_flag ? (printf("m ")) : 0;
-    c_flag ? (printf("c ")) : 0;
-    s_flag ? (printf("s ")) : 0;
-    t_flag ? (printf("t ")) : 0;
-    elbrus_flag ? (printf("elbrus=%s", elbrus_agr)) : 0;
-    printf("\n");
-
-    if (optind < argc) {
-        printf("Non-option arguments: ");
-        for (int i = optind; i < argc; i++) {
-            printf("%s ", argv[i]);
-        }
-    }
+    VECTOR_ERROR_HANDLE(Vector_dtor(&vector));
     return 0;
 }
 
-static void print_usage(const char* prog_name)
+static Sub_arr process(Vector* vector)
 {
-    fprintf(stderr, "Usage: %s [-mcst] [-b <arg>] [file]\n", prog_name);
-    return;
-}
+    Sub_arr res = { .left = 0ull, .right = 0ull, .sum = 0ll };
 
-static int validate_elbrus(const char* optarg)
-{
-    if (optarg == NULL)
-        return 0;
-    for (int i = 0; good_elbrus_opts[i] != NULL; i++) {
-        if (strcmp(optarg, good_elbrus_opts[i]) == 0) {
-            return 1;
-        }
+    if (vector->size == 0) {
+        return res;
     }
-    return 0;
+
+    int64_t prev_num = 0;
+    int64_t sum = 0;
+    size_t l = 0;
+    size_t r = 0;
+    size_t max_dif = 0;
+
+    while (r < vector->size) {
+        if (vector->data[r] > prev_num) {
+            sum += vector->data[r];
+        } else {
+            size_t dif = r - l + 1;
+            if (res.sum < sum) {
+                res.sum = sum;
+                res.left = l + 1;
+                res.right = r + 1;
+                max_dif = dif;
+            } else if (res.sum == sum && max_dif < dif) {
+                res.left = l + 1;
+                res.right = r + 1;
+                max_dif = dif;
+            }
+            sum = 0;
+            l = r;
+        }
+        prev_num = vector->data[r] > 0 ? vector->data[r] : 0;
+        ++r;
+    }
+
+    return res;
 }
 
-const char* good_elbrus_opts[] = {
-    "1c+",
-    "2c+",
-    "2c3",
-    "4c",
-    "8c",
-    "16c",
-    NULL
-};
+static size_t read_size(void)
+{
+    int64_t array_size = 0;
+    scanf("%lld", &array_size);
+
+    return array_size >= 0 ? array_size : 0;
+}

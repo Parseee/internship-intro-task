@@ -7,8 +7,10 @@
 #define warnx(fmt, ...) \
     fprintf(stderr, fmt, ##__VA_ARGS__);
 
-#define errx(status, fmt, ...) \
-    warnx(fmt, ##__VA_ARGS__); \
-    return status;
+#define errx(status, fmt, ...)     \
+    do {                           \
+        warnx(fmt, ##__VA_ARGS__); \
+        exit(status);              \
+    } while (0)
 
 #endif /* ERROR_H_ */
