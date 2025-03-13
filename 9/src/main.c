@@ -32,6 +32,11 @@ int main(void)
     return 0;
 }
 
+typedef struct Sub {
+    int64_t val;
+    size_t l_idx;
+} Sub;
+
 static Sub_arr process(Vector* vector)
 {
     Sub_arr res = { .left = 0ull, .right = 0ull, .sum = 0ll };
@@ -40,41 +45,53 @@ static Sub_arr process(Vector* vector)
         return res;
     }
 
-    int64_t prev_num = 0;
-    int64_t sum = 0;
-    size_t l = 0;
-    size_t r = 0;
-    size_t max_dif = 0;
 
-    while (r < vector->size) {
-        if (vector->data[r] > prev_num) {
-            sum += vector->data[r];
+
+    int max_sum = vector->data[0];          // Максимальная сумма
+    int current_sum = vector->data[0];      // Сумма текущей последовательности
+    int max_length = 1;            // Длина самой длинной последовательности
+    int current_length = 1;        // Длина текущей последовательности
+    int start = 0;                 // Начало текущей последовательности
+    int max_start = 0;             // Начало последовательности с максимальной суммой
+    int max_end = 0;               // Конец последовательности с максимальной суммой
+
+    for (int i = 1; i < vector->size; i++) {
+        if (vector->data[i] > vector->data[i - 1]) {
+            current_sum += vector->data[i]; // Добавляем элемент к текущей сумме
+            current_length++;      // Увеличиваем длину текущей последовательности
         } else {
-            size_t dif = r - l + 1;
-            if (res.sum < sum) {
-                res.sum = sum;
-                res.left = l + 1;
-                res.right = r + 1;
-                max_dif = dif;
-            } else if (res.sum == sum && max_dif < dif) {
-                res.left = l + 1;
-                res.right = r + 1;
-                max_dif = dif;
+            // Сравниваем текущую последовательность с максимальной
+            if (current_sum > max_sum || (current_sum == max_sum && current_length > max_length)) {
+                max_sum = current_sum;
+                max_length = current_length;
+                max_start = start;
+                max_end = i - 1;
             }
-            sum = 0;
-            l = r;
+            // Сбрасываем текущую последовательность
+            current_sum = vector->data[i];
+            current_length = 1;
+            start = i;
         }
-        prev_num = vector->data[r] > 0 ? vector->data[r] : 0;
-        ++r;
     }
+
+    // Проверяем последнюю последовательность
+    if (current_sum > max_sum || (current_sum == max_sum && current_length > max_length)) {
+        max_sum = current_sum;
+        max_length = current_length;
+        max_start = start;
+        max_end = vector->size - 1;
+    }
+
+    // Выводим результат
+    printf("Индексы последовательности: [%d, %d]\n", max_start, max_end);
+    printf("Максимальная сумма: %d\n", max_sum);
 
     return res;
 }
 
 static size_t read_size(void)
 {
-    int64_t array_size = 0;
-    scanf("%lld", &array_size);
-
-    return array_size >= 0 ? array_size : 0;
+    int64_t read_size = 0ll;
+    scanf("%lld", &read_size);
+    return read_size > 0ll ? (size_t)read_size : 0ull;
 }

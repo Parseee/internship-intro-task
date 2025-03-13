@@ -19,8 +19,8 @@ VECTOR_ERROR Vector_ctor(Vector* vector, size_t capacity)
 
     srand(time(NULL));
     for (size_t i = 0; i < vector->size; ++i) {
-        // vector->data[i] = rand() % 100 * (rand() % 100 > 50 ? -1 : 1);
-        scanf("%d", &vector->data[i]);
+        vector->data[i] = rand() % 100 * (rand() % 100 > 50 ? -1 : 1);
+        // scanf("%d", &vector->data[i]);
     }
 
     return VECTOR_OK;
