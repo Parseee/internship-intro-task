@@ -106,7 +106,7 @@ TEXT_ERROR Text_create(Text* text, const char* const filename)
     Text_set_text_data(text, &fd); // TODO: how to return error
     Text_set_text(text); // TODO: how to return errort
 
-    if (!fclose(fd)) {
+    if (fclose(fd)) {
         perror("Error closing file");
         return TEXT_FAILURE;
     }
@@ -126,6 +126,7 @@ TEXT_ERROR Text_fwrite(Text* text, const char* filename)
     }
 
     for (size_t i = 0; i < text->text_size; ++i) {
+        if (!isprint(*text->text[i])) continue;
         fprintf(output, "%s\n", text->text[i]);
     }
 
@@ -140,6 +141,7 @@ TEXT_ERROR Text_cwrite(Text* text)
 {
     assert(text);
     for (size_t i = 0; i < text->text_size; ++i) {
+        if (!isprint(*text->text[i])) continue;
         printf("%s\n", text->text[i]);
     }
     return TEXT_OK;

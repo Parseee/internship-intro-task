@@ -56,10 +56,19 @@ int main(int argc, char** argv)
             exit(0);
         }
     }
-    
-    Text_create(&tx, "Onegin.txt");
+
+    if (!input_filename) {
+        fprintf(stderr, "Input filename is required\n");
+        return EXIT_FAILURE;
+    }
+    Text_create(&tx, input_filename);
 
     Text_sort(&tx, sorting);
+
+    if (!output_filename) {
+        fprintf(stderr, "Output filename is required\n");
+        return EXIT_FAILURE;
+    }
 
     Text_fwrite(&tx, output_filename);
     Text_cwrite(&tx);

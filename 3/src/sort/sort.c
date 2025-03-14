@@ -142,24 +142,3 @@ void shaker_sort(void* const array, const ssize_t array_size, const ssize_t size
         }
     }
 }
-
-void shell_sort(void *const array, const ssize_t array_size, const ssize_t size, bool (*compare)(const void *, const void *))
-{
-    if (!array || array_size == 1) {
-        return;
-    }
-
-    for (ssize_t gap = array_size / 2; gap > 0; gap >>= 1) {
-        for (ssize_t i = gap; i < array_size; ++i) {
-            void* tmp = array + i * size;
-
-            int j;            
-            for (j = i; j >= gap && compare(array + (j - gap) * size, tmp); j -= gap) {
-                void* t = ((char**)array + (j - gap) * size);
-                ((char**)array)[j * size] = t;
-            }
-
-            ((char**)array)[j * size] = tmp;
-        }
-    }
-}

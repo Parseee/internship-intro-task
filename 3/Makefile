@@ -6,8 +6,8 @@ SRC_DIR = ./src
 BUILD_DIR = ./build
 CC = gcc
 UNAME = $(shell uname -s)
-ifeq ($(UNAME), Darwin) # I'm uisng mac and alternative version of gcc
-	CC = gcc-14
+ifeq ($(UNAME), Darwin) # I'm uisng mac and alternative version of compiler with sanitizers cause packaged doesn't have ones
+	CC = /opt/homebrew/opt/llvm/bin/clang
 endif
 
 CFLAGS =-Wall -Wextra -Waggressive-loop-optimizations -g -std=c11 \
@@ -22,7 +22,7 @@ CFLAGS =-Wall -Wextra -Waggressive-loop-optimizations -g -std=c11 \
 		-Wno-missing-field-initializers -Wno-narrowing -Wno-varargs \
 		-Wstack-protector -fcheck-new -fstack-protector -fstrict-overflow \
 		-fno-omit-frame-pointer -Wlarger-than=81920 -Wstack-usage=81920 \
-		-Werror=vla
+		-Werror=vla -fsanitize=address
 
 SOURCES = main.c text/text.c sort/sort.c
 SOURCES_REL_PATH = $(patsubst %.c,$(SRC_DIR)/%.c,$(SOURCES))
