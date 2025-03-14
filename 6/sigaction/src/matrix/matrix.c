@@ -65,6 +65,7 @@ MATRIX_ERROR Matrix_multiply(Matrix* res, Matrix* left, Matrix* right)
         left->w_col = i;
         for (size_t j = 0; j < MATRIX_SIZE; ++j) {
             right->w_row = j;
+            res->data[i][j] = 0;
             for (size_t k = 0; k < MATRIX_SIZE; ++k) {
                 left->w_row = right->w_col = k;
                 res->data[i][j] += left->data[i][k] * right->data[k][j];

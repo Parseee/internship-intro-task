@@ -7,13 +7,13 @@
 
 #include "matrix/matrix.h"
 
-typedef struct Ret_data {
+struct Ret_data {
     Matrix* left;
     Matrix* right;
-} Ret_data;
+} ret_data;
 
 static int process(Matrix* left, Matrix* right, Matrix* res);
-static void init_signals(Ret_data ret_data);
+static void init_signals();
 void signal_handler(int signal, siginfo_t* info, void* context);
 
 int main(void)
@@ -43,41 +43,35 @@ static int process(Matrix* left, Matrix* right, Matrix* res)
     MATRIX_ERROR_HANDLE(Matrix_random_fill(left));
     MATRIX_ERROR_HANDLE(Matrix_random_fill(right));
 
-    Ret_data ret_data = { left, right};
-    init_signals(ret_data);
+    ret_data.left = left;
+    ret_data.right = right;
+    init_signals();
 
     MATRIX_ERROR_HANDLE(Matrix_multiply(res, left, right));
 
     return 0;
 }
 
-static void init_signals(Ret_data ret_data)
+static void init_signals()
 {
     struct sigaction sigact;
     sigact.sa_sigaction = signal_handler;
     sigemptyset(&sigact.sa_mask);
     sigact.sa_flags = SA_SIGINFO;
-    union sigval sv;
-    sv.sival_ptr = (void*)&ret_data;
+
     if (sigaction(SIGINT, &sigact, NULL)) {
         perror("Setting alternative sigaction failed");
         return;
     }
-
-    // if (sigqueue(getpid(), SIGINT, (union sigval) { .sival_ptr = (void*)&ret_data })) {
-    //     perror("Pushing signal handler argument failed");
-    //     return;
-    // }
 }
 
 void signal_handler(int signal, siginfo_t* info, void* context)
 {
     assert(info);
 
-    Ret_data* ret_data = info->si_ptr;
     if (signal == SIGINT) {
-        printf("Current indices for left matrix: %lu, %lu\n", ret_data->left->w_col, ret_data->left->w_row);
-        printf("Current indices for right matrix: %lu, %lu\n", ret_data->right->w_col, ret_data->right->w_row);
+        printf("Current indices for left matrix: %lu, %lu\n", ret_data.left->w_col, ret_data.left->w_row);
+        printf("Current indices for right matrix: %lu, %lu\n", ret_data.right->w_col, ret_data.right->w_row);
 
         struct sigaction sigact;
         sigact.sa_handler = SIG_DFL;
