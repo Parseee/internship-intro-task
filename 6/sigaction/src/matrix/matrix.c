@@ -15,10 +15,10 @@ MATRIX_ERROR Matrix_ctor(Matrix* matrix)
 {
     assert(matrix && "matrix is not init");
 
-    TRY((matrix->data = calloc(MATRIX_SIZE, sizeof(*matrix->data))), cleanup);
+    TRY((matrix->data = calloc(MATRIX_SIZE, sizeof(*matrix->data))) == NULL, cleanup);
 
     for (size_t i = 0; i < MATRIX_SIZE; ++i) {
-        TRY((matrix->data[i] = calloc(MATRIX_SIZE, sizeof(*matrix->data[i]))), cleanup);
+        TRY((matrix->data[i] = calloc(MATRIX_SIZE, sizeof(*matrix->data[i]))) == NULL, cleanup);
     }
 
     matrix->w_col = matrix->w_row = (size_t)0;

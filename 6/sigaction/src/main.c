@@ -57,17 +57,27 @@ static void init_signals(Ret_data ret_data)
     sigact.sa_sigaction = signal_handler;
     sigemptyset(&sigact.sa_mask);
     sigact.sa_flags = SA_SIGINFO;
+<<<<<<< HEAD
     union sigval sv;
     sv.sival_ptr = (void*)&ret_data;
+=======
+>>>>>>> 79afa59 (sigaction buggs)
     if (sigaction(SIGINT, &sigact, NULL)) {
         perror("Setting alternative sigaction failed");
         return;
     }
 
+<<<<<<< HEAD
     // if (sigqueue(getpid(), SIGINT, (union sigval) { .sival_ptr = (void*)&ret_data })) {
     //     perror("Pushing signal handler argument failed");
     //     return;
     // }
+=======
+    if (sigqueue(getpid(), SIGINT, (union sigval) { .sival_ptr = (void*)&ret_data })) {
+        perror("Pushing signal handler argument failed");
+        return;
+    }
+>>>>>>> 79afa59 (sigaction buggs)
 }
 
 void signal_handler(int signal, siginfo_t* info, void* context)
