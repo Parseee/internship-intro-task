@@ -17,6 +17,7 @@ static size_t read_size(void);
 
 int main(void)
 {
+    printf("Enter vector size: ");
     size_t vector_size = read_size();
 
     Vector vector;
@@ -63,7 +64,7 @@ static Sub_arr process(Vector* vector)
             }
         }
         ++r;
-    } 
+    }
 
     return res;
 }
