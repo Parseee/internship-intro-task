@@ -22,12 +22,12 @@ CFLAGS =-Wall -Wextra -Waggressive-loop-optimizations -g -std=c11 \
 		-Wno-missing-field-initializers -Wno-narrowing -Wno-varargs \
 		-Wstack-protector -fcheck-new -fstack-protector -fstrict-overflow \
 		-fno-omit-frame-pointer -Wlarger-than=81920 -Wstack-usage=81920 \
-		-Werror=vla -fsanitize=address
+		-Werror=vla
 
-SOURCES = main.c logger/logger.c text/text.c sort/sort.c
+SOURCES = main.c text/text.c sort/sort.c
 SOURCES_REL_PATH = $(patsubst %.c,$(SRC_DIR)/%.c,$(SOURCES))
 
-DIRS = text logger sort
+DIRS = text sort
 BUILD_DIRS = $(DIRS:%=$(BUILD_DIR)/%)
 
 OBJECTS = $(patsubst %.c,%.o,$(SOURCES))
@@ -56,15 +56,12 @@ $(BUILD_DIRS):
 
 -include $(DEPS_REL_PATH)
 
-clean: clean_bin clean_obj clean_lib
+clean: clean_bin clean_obj
 
 clean_bin:
 	rm -rf $(PROJECT_NAME).out
 
 clean_obj:
 	rm -rf ./build
-
-clean_lib:
-	@$(MAKE)  LIST=$(LIST) DYNAMIC=$(DYNAMIC) clean -C ./libs/mystack
 
 rebuild: clean build
