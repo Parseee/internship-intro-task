@@ -60,14 +60,20 @@ static void init_signals(Ret_data ret_data)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f4750e4 (sigaction buggs)
     union sigval sv;
     sv.sival_ptr = (void*)&ret_data;
 =======
 >>>>>>> 79afa59 (sigaction buggs)
 =======
 >>>>>>> 79afa59 (sigaction buggs)
+<<<<<<< HEAD
 =======
 >>>>>>> 79afa59e31f9d694ab970233460e80da3dec6356
+=======
+>>>>>>> f4750e4 (sigaction buggs)
     if (sigaction(SIGINT, &sigact, NULL)) {
         perror("Setting alternative sigaction failed");
         return;
@@ -76,6 +82,9 @@ static void init_signals(Ret_data ret_data)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f4750e4 (sigaction buggs)
     // if (sigqueue(getpid(), SIGINT, (union sigval) { .sival_ptr = (void*)&ret_data })) {
     //     perror("Pushing signal handler argument failed");
     //     return;
@@ -83,14 +92,22 @@ static void init_signals(Ret_data ret_data)
 =======
 =======
 >>>>>>> 79afa59 (sigaction buggs)
+<<<<<<< HEAD
 =======
 >>>>>>> 79afa59e31f9d694ab970233460e80da3dec6356
+=======
+>>>>>>> f4750e4 (sigaction buggs)
     if (sigqueue(getpid(), SIGINT, (union sigval) { .sival_ptr = (void*)&ret_data })) {
         perror("Pushing signal handler argument failed");
         return;
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 79afa59 (sigaction buggs)
+=======
+>>>>>>> f4750e4 (sigaction buggs)
 >>>>>>> 79afa59 (sigaction buggs)
 =======
 >>>>>>> 79afa59 (sigaction buggs)
