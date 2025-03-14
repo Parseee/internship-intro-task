@@ -45,6 +45,26 @@ static Sub_arr process(Vector* vector)
         return res;
     }
 
+    size_t l = 0, r = 0;
+    int64_t prev = -1;
+    int64_t sum = 0;
+    while (r < vector->size) {
+        if (vector->data[r] > prev) {
+            sum += vector->data[r];
+            prev = vector->data[r];
+        } else {
+            if (res.sum < sum || (res.sum == sum && res.right - res.left + 1 > r - l + 1)) {
+                res.left = l + 1;
+                res.right = r;
+                res.sum = sum;
+                l = r;
+                prev = -1;
+                sum = 0;
+            }
+        }
+        ++r;
+    } 
+
     return res;
 }
 
