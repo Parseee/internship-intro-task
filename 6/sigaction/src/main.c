@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <signal.h>
-#include <unistd.h>
 #include <stdio.h>
+#include <unistd.h>
 
 // #include "error/error.h"
 #include "matrix/matrix.h"
@@ -12,8 +12,8 @@ typedef struct Ret_data {
 } Ret_data;
 
 static int process(Matrix* left, Matrix* right, Matrix* res);
-static void init_signals(struct sigaction* sigact, Ret_data ret_data);
-void signal_handler(int signal, siginfo_t* info, void* ucontext);
+static void init_signals(Ret_data ret_data);
+void signal_handler(int signal, struct __siginfo* info, void* context);
 
 int main(void)
 {
@@ -43,7 +43,7 @@ static int process(Matrix* left, Matrix* right, Matrix* res)
     MATRIX_ERROR_HANDLE(Matrix_random_fill(right));
 
     Ret_data ret_data = { left, right };
-    init_signals(&sigact, ret_data);
+    init_signals(ret_data);
 
     // MATRIX_ERROR_HANDLE(Matrix_multiply(res, left, right));
 
@@ -59,22 +59,22 @@ static void init_signals(Ret_data ret_data)
     sigact.sa_flags = SA_SIGINFO;
     sigaction(SIGINT, &sigact, NULL);
 
-    sigqueue(getpid(), SIGINT, (union sigval){ .sival_ptr = (void *)&ret_data });
+    sigqueue(getpid(), SIGINT, (union sigval) { .sival_ptr = (void*)&ret_data });
 }
 
-void signal_handler(int signal, siginfo_t* info, void* ucontext)
+void signal_handler(int signal, struct __siginfo* info, void* context)
 {
     assert(info);
 
-    Ret_data* ret_data = (Ret_data*)info->si_ptr;
+    Ret_data* ret_data = info->si_value.sival_ptr;
     if (signal == SIGINT) {
         printf("Current indices for left matrix: %ld, %ld\n", ret_data->left->w_col, ret_data->left->w_row);
         printf("Current indices for right matrix: %ld, %ld\n", ret_data->right->w_col, ret_data->right->w_row);
 
         struct sigaction sigact;
         sigact.sa_handler = SIG_DFL;
-        sigemptyset(&sa.sa_mask);
-        sa.sa_flags = 0;
-        sigaction(SIGINT, &sa, NULL);
+        sigemptyset(&sigact.sa_mask);
+        sigact.sa_flags = 0;
+        sigaction(SIGINT, &sigact, NULL);
     }
 }
