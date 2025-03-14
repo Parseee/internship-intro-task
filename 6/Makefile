@@ -24,10 +24,10 @@ CFLAGS =-Wall -Wextra -Waggressive-loop-optimizations -g -std=c11 \
 		-fno-omit-frame-pointer -Wlarger-than=81920 -Wstack-usage=81920 \
 		-Werror=vla -fsanitize=leak
 
-SOURCES = main.c vector/vector.c
+SOURCES = main.c matrix/matrix.c
 SOURCES_REL_PATH = $(patsubst %.c,$(SRC_DIR)/%.c,$(SOURCES))
 
-DIRS = vector
+DIRS = matrix
 BUILD_DIRS = $(DIRS:%=$(BUILD_DIR)/%)
 
 OBJECTS = $(patsubst %.c,%.o,$(SOURCES))
@@ -53,8 +53,6 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIRS)
 
 $(BUILD_DIRS):
 	@mkdir -p $@
-
--include $(DEPS_REL_PATH)
 
 clean: clean_bin clean_obj
 

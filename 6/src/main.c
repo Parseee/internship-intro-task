@@ -42,7 +42,6 @@ static int process(Matrix* left, Matrix* right, Matrix* res)
     MATRIX_ERROR_HANDLE(Matrix_random_fill(left));
     MATRIX_ERROR_HANDLE(Matrix_random_fill(right));
 
-    struct sigaction sigact;
     Ret_data ret_data = { left, right };
     init_signals(&sigact, ret_data);
 
@@ -51,30 +50,31 @@ static int process(Matrix* left, Matrix* right, Matrix* res)
     return 0;
 }
 
-static void init_signals(struct sigaction* sigact, Ret_data ret_data)
+static void init_signals(Ret_data ret_data)
 {
-    assert(sigact);
+    struct sigaction sigact;
 
-    sigact->sa_sigaction = signal_handler;
-    sigemptyset(&sigact->sa_mask);
-    sigact->sa_flags = SA_SIGINFO;
-    sigaction(SIGINT, sigact, NULL);
+    sigact.sa_sigaction = signal_handler;
+    sigemptyset(&sigact.sa_mask);
+    sigact.sa_flags = SA_SIGINFO;
+    sigaction(SIGINT, &sigact, NULL);
 
-    sigqueue(getpid(), SIGUSR1, (union sigval){ .sival_ptr = (void *)msg });
-
+    sigqueue(getpid(), SIGINT, (union sigval){ .sival_ptr = (void *)&ret_data });
 }
 
 void signal_handler(int signal, siginfo_t* info, void* ucontext)
 {
     assert(info);
-    assert(ucontext);
 
-    Ret_data* ret_data = (Ret_data*)ucontext;
-
+    Ret_data* ret_data = (Ret_data*)info->si_ptr;
     if (signal == SIGINT) {
         printf("Current indices for left matrix: %ld, %ld\n", ret_data->left->w_col, ret_data->left->w_row);
         printf("Current indices for right matrix: %ld, %ld\n", ret_data->right->w_col, ret_data->right->w_row);
 
-
+        struct sigaction sigact;
+        sigact.sa_handler = SIG_DFL;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = 0;
+        sigaction(SIGINT, &sa, NULL);
     }
 }
