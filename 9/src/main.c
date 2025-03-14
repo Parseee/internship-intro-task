@@ -45,47 +45,6 @@ static Sub_arr process(Vector* vector)
         return res;
     }
 
-
-
-    int max_sum = vector->data[0];          // Максимальная сумма
-    int current_sum = vector->data[0];      // Сумма текущей последовательности
-    int max_length = 1;            // Длина самой длинной последовательности
-    int current_length = 1;        // Длина текущей последовательности
-    int start = 0;                 // Начало текущей последовательности
-    int max_start = 0;             // Начало последовательности с максимальной суммой
-    int max_end = 0;               // Конец последовательности с максимальной суммой
-
-    for (int i = 1; i < vector->size; i++) {
-        if (vector->data[i] > vector->data[i - 1]) {
-            current_sum += vector->data[i]; // Добавляем элемент к текущей сумме
-            current_length++;      // Увеличиваем длину текущей последовательности
-        } else {
-            // Сравниваем текущую последовательность с максимальной
-            if (current_sum > max_sum || (current_sum == max_sum && current_length > max_length)) {
-                max_sum = current_sum;
-                max_length = current_length;
-                max_start = start;
-                max_end = i - 1;
-            }
-            // Сбрасываем текущую последовательность
-            current_sum = vector->data[i];
-            current_length = 1;
-            start = i;
-        }
-    }
-
-    // Проверяем последнюю последовательность
-    if (current_sum > max_sum || (current_sum == max_sum && current_length > max_length)) {
-        max_sum = current_sum;
-        max_length = current_length;
-        max_start = start;
-        max_end = vector->size - 1;
-    }
-
-    // Выводим результат
-    printf("Индексы последовательности: [%d, %d]\n", max_start, max_end);
-    printf("Максимальная сумма: %d\n", max_sum);
-
     return res;
 }
 
